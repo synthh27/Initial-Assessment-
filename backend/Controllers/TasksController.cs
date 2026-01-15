@@ -44,6 +44,7 @@ namespace TaskManager.API
             // EXTRACT USER ID FROM JWT
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
+            // CREATE NEW TASK ITEM
             var newTask = new TaskItem
             {
                 Title = request.Title,
@@ -60,17 +61,27 @@ namespace TaskManager.API
             return CreatedAtAction(nameof(Get), new { id = newTask.Id }, newTask);
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] TaskItem updated)
+        [HttpPatch("{id}")]
+        public async Task<IActionResult> Update(int id, [FromBody] UpdateTaskRequest request)
         {
-            var task = await _context.Tasks.FindAsync(id);
+            // GET USER ID FROM JWT
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+            var task = await _context.Tasks
+                .FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId);
+
+            // RETURNS 404 IF TASK NOT FOUND
             if (task == null) return NotFound();
 
-            task.Title = updated.Title;
-            task.IsDone = updated.IsDone;
+            // UPDATE TASK PROPERTIES IF THEY ARE PROVIDED
+            if (request.Title != null) task.Title = request.Title;
+            if (request.IsDone.HasValue) task.IsDone = request.IsDone.Value;
+
+            // SAVE CHANGES TO DATABASE
             await _context.SaveChangesAsync();
 
-            return Ok(task);
+            // RETURNS 200 FOR SUCCESS UPDATE
+            return Ok("Tasks updated successfully.");
         }
 
         [HttpDelete("{id}")]
