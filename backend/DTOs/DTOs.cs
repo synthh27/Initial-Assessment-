@@ -8,4 +8,11 @@
         string Password
     );
 
+    public record RegisterResponse
+    (
+        int Id,
+        string Email,
+        string Token
+    );
+
 }
