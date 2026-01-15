@@ -1,4 +1,6 @@
-﻿namespace TaskManager.DTOs
+﻿using TaskManager.Models;
+
+namespace TaskManager.DTOs
 {
     //TODO: ADD DTO ALL Records here
 
@@ -14,6 +16,17 @@
         int subId,
         string Email,
         string Token
+    );
+
+    public record CreateTaskRequest
+    (
+        string Title
+    );
+
+    public record UpdateTaskRequest
+    (
+        string? Title,
+        bool? IsDone
     );
 
 }
