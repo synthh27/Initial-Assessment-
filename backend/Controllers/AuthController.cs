@@ -7,6 +7,7 @@ using TaskManager.Services;
 using TaskManager.Utility;
 using TaskManager.Models;
 using System.Diagnostics;
+using Microsoft.EntityFrameworkCore;
 
 namespace task_manager_api.Controllers
 {
@@ -39,7 +40,7 @@ namespace task_manager_api.Controllers
 
         // REGISTER USER ENDPOINT
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterRequest request)
+        public async Task<IActionResult> Register([FromBody] AuthRequest request)
         {
             Debug.WriteLine(request);
             // CHECK IF EMAIL IS ALREADY REGISTERED
@@ -68,8 +69,24 @@ namespace task_manager_api.Controllers
             return CreatedAtAction(
                 nameof(GetUserById),
                 new { Id = user.Id },
-                new RegisterResponse(user.Id, user.Email, token)
+                new AuthResponse("User Registered Successfully", user.Id, user.Email, token)
             );
+        }
+
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] AuthRequest request)
+        {
+            // GETS USER FROM THE DB
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
+
+            // RETURNS 401 IF THE CREDENTIALS ARE INVALID
+            if (user == null || !PasswordHasher.VerifyPassword(request.Password, user.PasswordHash))
+            {
+                return Unauthorized( new { message = "Invalid Credentials." } );
+            }
+
+            var token = _jwtService.GenerateToken(user);
+            return Ok(new AuthResponse("User Logged in Successfully", user.Id, user.Email, token));
         }
     }
 }
