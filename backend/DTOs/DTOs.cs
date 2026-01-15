@@ -2,15 +2,16 @@
 {
     //TODO: ADD DTO ALL Records here
 
-    public record RegisterRequest
+    public record AuthRequest
     (
         string Email,
         string Password
     );
 
-    public record RegisterResponse
+    public record AuthResponse
     (
-        int Id,
+        string message,
+        int subId,
         string Email,
         string Token
     );
